@@ -56,5 +56,24 @@ Private Sub MapearImportacao(ByVal tmp As String, ByVal destino As String, ByVal
 End Sub
 
 Public Sub RegistrarLog(ByVal arquivo As String, ByVal pasta As String, ByVal lote As String, ByVal qtd As Long, ByVal status As String, ByVal mensagem As String)
-    CurrentDb.Execute "INSERT INTO TB_LOG_IMPORTACAO (Arquivo, Pasta, Lote, DataProcessamento, QuantidadeRegistros, Status, MensagemErro, Usuario) VALUES ('" & Replace(arquivo, "'", "''") & "','" & Replace(pasta, "'", "''") & "','" & lote & "',Now()," & qtd & ",'" & status & "','" & Replace(mensagem, "'", "''") & "',Environ('USERNAME'))"
+    Dim usuario As String
+    usuario = NomeUsuarioWindows()
+
+    CurrentDb.Execute "INSERT INTO TB_LOG_IMPORTACAO (Arquivo, Pasta, Lote, DataProcessamento, QuantidadeRegistros, Status, MensagemErro, Usuario) VALUES (" & _
+        SqlTexto(arquivo) & "," & SqlTexto(pasta) & "," & SqlTexto(lote) & ",Now()," & CStr(qtd) & "," & _
+        SqlTexto(status) & "," & SqlTexto(mensagem) & "," & SqlTexto(usuario) & ")", dbFailOnError
 End Sub
+
+Private Function NomeUsuarioWindows() As String
+    NomeUsuarioWindows = Environ$("USERNAME")
+    If Len(NomeUsuarioWindows) = 0 Then NomeUsuarioWindows = Environ$("USER")
+    If Len(NomeUsuarioWindows) = 0 Then NomeUsuarioWindows = "USUARIO_NAO_IDENTIFICADO"
+End Function
+
+Private Function SqlTexto(ByVal valor As Variant) As String
+    If IsNull(valor) Then
+        SqlTexto = "Null"
+    Else
+        SqlTexto = "'" & Replace(CStr(valor), "'", "''") & "'"
+    End If
+End Function
